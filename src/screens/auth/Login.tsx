@@ -1,12 +1,12 @@
+import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View, Pressable } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, Pressable, ToastAndroid, Alert } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { UserRole } from '../../types';
-import { theme, commonStyles } from '../../styles/theme';
 
 const CLAVE = 'ABC123';
 
-const Login: React.FC = () => {
+export default function App() {
   const { setRol } = useData();
   const [clave, setClave] = useState('');
   const [rolLocal, setRolLocal] = useState<UserRole>('voluntario');
@@ -16,105 +16,162 @@ const Login: React.FC = () => {
       Alert.alert('Error', 'La clave debe tener 6 caracteres.');
       return;
     }
-    // Validación simple contra clave fija
     if (clave !== CLAVE) {
       Alert.alert('Acceso denegado', 'Clave incorrecta.');
       return;
     }
     setRol(rolLocal);
+    ToastAndroid.show(`Bienvenido ${rolLocal}`, ToastAndroid.LONG);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.titulo}>BAMX</Text>
-      <Text style={styles.subtitulo}>Iniciar sesión</Text>
-
-      <View style={styles.sliderContainer}>
-        <Pressable
-          style={[styles.sliderBtn, rolLocal === 'voluntario' && styles.sliderBtnActivo]}
-          onPress={() => setRolLocal('voluntario')}
-        >
-          <Text style={[styles.sliderTexto, rolLocal === 'voluntario' && styles.sliderTextoActivo]}>Voluntario</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.sliderBtn, rolLocal === 'admin' && styles.sliderBtnActivo]}
-          onPress={() => setRolLocal('admin')}
-        >
-          <Text style={[styles.sliderTexto, rolLocal === 'admin' && styles.sliderTextoActivo]}>Administrador</Text>
-        </Pressable>
-      </View>
-
-      <TextInput
-        placeholder="Clave de 6 caracteres"
-        placeholderTextColor="#999"
-        value={clave}
-        onChangeText={setClave}
-        style={styles.input}
-        autoCapitalize="characters"
-        maxLength={6}
+      <Image
+        source={require('../../../assets/BANCO_DE_ALIMENTOS.jpg')}
+        style={styles.ImageBackground}
       />
 
-      <Pressable style={styles.boton} onPress={onLogin}>
-        <Text style={styles.botonTexto}>Entrar</Text>
-      </Pressable>
+      <View style={styles.logoContainer}>
+        <Image
+          source={require('../../../assets/BA_image.png')}
+          style={styles.logoImage}
+        />
+        <Text style={styles.logoText}>Banco Alimentos</Text>
+      </View>
+
+      {/* Formulario blanco */}
+      <View style={styles.form}>
+        <Text style={styles.formText}>Inicie sesión</Text>
+
+        {/* Selector de rol */}
+        <View style={styles.sliderContainer}>
+          <Pressable
+            style={[styles.sliderBtn, rolLocal === 'voluntario' && styles.sliderBtnActivo]}
+            onPress={() => setRolLocal('voluntario')}
+          >
+            <Text style={[styles.sliderTexto, rolLocal === 'voluntario' && styles.sliderTextoActivo]}>Voluntario</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.sliderBtn, rolLocal === 'admin' && styles.sliderBtnActivo]}
+            onPress={() => setRolLocal('admin')}
+          >
+            <Text style={[styles.sliderTexto, rolLocal === 'admin' && styles.sliderTextoActivo]}>Administrador</Text>
+          </Pressable>
+        </View>
+
+        {/* Input de clave */}
+        <View style={styles.formInput}>
+          <TextInput
+            style={styles.formTextInput}
+            placeholder="Clave de 6 caracteres"
+            value={clave}
+            onChangeText={setClave}
+            maxLength={6}
+            autoCapitalize="characters"
+            secureTextEntry
+          />
+        </View>
+
+        {/* Botón ingresar */}
+        <View style={{ marginTop: 20 }}>
+          <Pressable style={styles.boton} onPress={onLogin}>
+            <Text style={styles.botonTexto}>ENTRAR</Text>
+          </Pressable>
+        </View>
+      </View>
+
+      <StatusBar style="auto" />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: theme.spacing.xxl,
-    backgroundColor: theme.colors.background,
+    backgroundColor: '#000',
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  titulo: {
-    ...theme.typography.h1,
-    textAlign: 'center',
-    marginBottom: theme.spacing.sm,
-    color: theme.colors.primary,
+  ImageBackground: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.6,
   },
-  subtitulo: {
-    ...theme.typography.body,
+  logoContainer: {
+    position: 'absolute',
+    alignSelf: 'center',
+    top: '15%',
+    alignItems: 'center',
+  },
+  logoImage: {
+    width: 200,
+    height: 210,
+  },
+  logoText: {
+    color: 'white',
+    fontSize: 26,
+    fontWeight: 'bold',
     textAlign: 'center',
-    color: theme.colors.textSecondary,
-    marginBottom: theme.spacing.xxl,
+  },
+  form: {
+    width: '100%',
+    height: '40%',
+    backgroundColor: 'white',
+    position: 'absolute',
+    bottom: 0,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    padding: 30,
+  },
+  formText: {
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginBottom: 20,
+    justifyContent: 'center'
+
+  },
+  formInput: {
+    flexDirection: 'row',
+    marginTop: 20,
+  },
+  formTextInput: {
+    flex: 1,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EBEBEB',
+    marginLeft: 5,
+    paddingVertical: 5,
   },
   sliderContainer: {
     flexDirection: 'row',
-    backgroundColor: theme.colors.surfaceLight,
-    borderRadius: theme.borderRadius.lg,
-    padding: theme.spacing.xs,
-    marginBottom: theme.spacing.lg,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 20,
+    marginVertical: 20,
   },
   sliderBtn: {
     flex: 1,
-    paddingVertical: theme.spacing.md,
-    borderRadius: theme.borderRadius.sm,
+    paddingVertical: 10,
     alignItems: 'center',
   },
   sliderBtnActivo: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: 'orange',
+    borderRadius: 20,
   },
   sliderTexto: {
-    ...theme.typography.caption,
+    fontSize: 14,
+    color: '#555',
   },
   sliderTextoActivo: {
-    color: theme.colors.background,
-  },
-  input: {
-    ...commonStyles.input,
-    marginBottom: theme.spacing.lg,
+    color: 'white',
+    fontWeight: 'bold',
   },
   boton: {
-    ...commonStyles.buttonPrimary,
-    paddingVertical: theme.spacing.md + 2,
+    backgroundColor: 'orange',
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
   },
   botonTexto: {
-    ...commonStyles.buttonText,
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
-
-export default Login;
-
-
