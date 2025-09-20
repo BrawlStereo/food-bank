@@ -22,7 +22,7 @@ const ProductSearch: React.FC = () => {
     if (sortBy === 'name') {
       filtered = [...filtered].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
     } else {
-      filtered = [...filtered].sort((a, b) => a.id.localeCompare(b.id));
+      filtered = [...filtered].sort((a, b) => b.id.localeCompare(a.id));
     }
     return filtered;
   }, [productos, query, sortBy]);

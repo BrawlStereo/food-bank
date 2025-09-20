@@ -5,22 +5,13 @@ import { useData } from '../../context/DataContext';
 import { theme, commonStyles } from '../../styles/theme';
 
 const VolunteerDashboard: React.FC = () => {
-  const { entregas, logout } = useData();
+  const { entregas } = useData();
   const navigation = useNavigation<any>();
 
   const activas = entregas.filter(e => e.estado === 'activo');
   const pasadas = entregas.filter(e => e.estado === 'pasado');
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Cerrar sesión',
-      '¿Estás seguro de que quieres cerrar sesión?',
-      [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Cerrar sesión', style: 'destructive', onPress: logout },
-      ]
-    );
-  };
+  // Logout handled in navigation
 
   const screenHeight = Dimensions.get('window').height;
 
@@ -50,9 +41,7 @@ const VolunteerDashboard: React.FC = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.seccionTitulo}>Entregas activas</Text>
-        <Pressable style={styles.logoutBtn} onPress={handleLogout}>
-          <Text style={styles.logoutBtnTxt}>Cerrar sesión</Text>
-        </Pressable>
+        {/* Logout button removed, will be handled in navigation */}
       </View>
 
       {/* Lista de entregas activas */}
@@ -103,10 +92,12 @@ const VolunteerDashboard: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    padding: theme.spacing.lg, 
-    backgroundColor: theme.colors.background 
+  container: {
+    flex: 1,
+    backgroundColor: '#FFB97A',
+    paddingHorizontal: 10,
+    paddingTop: 32,
+    paddingBottom: 40,
   },
   header: {
     flexDirection: 'row',
@@ -131,19 +122,50 @@ const styles = StyleSheet.create({
   },
   list: { gap: theme.spacing.sm },
   card: {
-    ...commonStyles.card,
-    marginBottom: theme.spacing.sm,
+    backgroundColor: '#FFF3E0',
+    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
   },
-  cardTitulo: { 
-    ...theme.typography.h4, 
-    marginBottom: theme.spacing.xs,
-    color: theme.colors.text,
+  cardBtnRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 10,
   },
-  cardDetalle: { 
-    color: theme.colors.textSecondary, 
-    marginBottom: theme.spacing.sm,
-    ...theme.typography.body,
+  vermasBtn: {
+    backgroundColor: '#2ECC40',
+    borderRadius: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
+  vermasBtnTxt: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 15,
+    letterSpacing: 0.5,
+  },
+  cardTitulo: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 2,
+  },
+  cardDetalle: {
+    color: '#555',
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  // removed duplicate cardTitulo
+  // removed duplicate cardDetalle
   cardAccion: { 
     color: theme.colors.primary, 
     ...theme.typography.body,

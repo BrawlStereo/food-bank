@@ -16,6 +16,7 @@ interface DataContextValue {
   agregarEntrega: (nueva: Omit<Delivery, 'id'>) => void;
   logout: () => void;
   registrarProducto: (entregaId: string, producto: { id: string; nombre: string }, voluntarioNombre: string) => void;
+  agregarProducto: (nuevo: Omit<Product, 'id'>) => void;
 }
 
 const DataContext = createContext<DataContextValue | undefined>(undefined);
@@ -23,7 +24,7 @@ const DataContext = createContext<DataContextValue | undefined>(undefined);
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [rol, setRol] = useState<UserRole | null>(null);
   const [entregas, setEntregas] = useState<Delivery[]>(entregasSeed);
-  const [productos] = useState<Product[]>(productosSeed);
+  const [productos, setProductos] = useState<Product[]>(productosSeed);
   const [participantes] = useState<Participant[]>(participantesSeed);
 
   const iniciarEntrega = (id: string) => {
@@ -54,6 +55,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setEntregas(prev => prev.map(e => e.id === entregaId ? { ...e, registros: [...(e.registros || []), record] } : e));
   };
 
+  const agregarProducto = (nuevo: Omit<Product, 'id'>) => {
+    const id = `prod-${Math.random().toString(36).slice(2, 7)}`;
+    setProductos(prev => [{ id, ...nuevo }, ...prev]);
+  };
+
   const value = useMemo(
     () => ({
       rol,
@@ -67,6 +73,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       agregarEntrega,
       logout,
       registrarProducto,
+      agregarProducto,
     }),
     [rol, entregas, productos, participantes]
   );

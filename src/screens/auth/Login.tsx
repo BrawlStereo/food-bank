@@ -69,6 +69,7 @@ export default function App() {
             maxLength={6}
             autoCapitalize="characters"
             secureTextEntry
+            textAlign='center'
           />
         </View>
 
