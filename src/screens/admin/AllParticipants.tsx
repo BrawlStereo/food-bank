@@ -24,7 +24,7 @@ const AllParticipants: React.FC = () => {
       <View style={styles.addContainer}>
         <TextInput
           style={styles.input}
-          placeholder="Nombre del participante"
+          placeholder="Nombre del participante a agregar"
           value={nuevoNombre}
           onChangeText={setNuevoNombre}
         />
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 8,
     paddingHorizontal: 10,
-    height: 40,
+    height: 50,
   },
   item: {
     ...commonStyles.card, 
