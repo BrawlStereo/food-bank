@@ -4,10 +4,10 @@ import { StyleSheet, Text, View, Image, TextInput, Pressable, ToastAndroid, Aler
 import { useData } from '../../context/DataContext';
 import { UserRole } from '../../types';
 
-const CLAVE = 'ABC123';
+const CLAVE_DEFAULT = 'ABC123'; // clave por defecto para admin y voluntario
 
 export default function App() {
-  const { setRol } = useData();
+  const { setRol, participantes, setParticipantes } = useData(); // ahora también traemos setParticipantes
   const [clave, setClave] = useState('');
   const [rolLocal, setRolLocal] = useState<UserRole>('voluntario');
 
@@ -16,12 +16,45 @@ export default function App() {
       Alert.alert('Error', 'La clave debe tener 6 caracteres.');
       return;
     }
-    if (clave !== CLAVE) {
-      Alert.alert('Acceso denegado', 'Clave incorrecta.');
-      return;
+
+    // Si se selecciona ADMIN, solo puede entrar con la clave genérica
+    if (rolLocal === 'admin') {
+      if (clave === CLAVE_DEFAULT) {
+        setRol('admin');
+        ToastAndroid.show('Bienvenido Administrador', ToastAndroid.LONG);
+      } else {
+        Alert.alert('Acceso denegado', 'Clave incorrecta para administrador.');
+      }
+      return; // salimos de la función
     }
-    setRol(rolLocal);
-    ToastAndroid.show(`Bienvenido ${rolLocal}`, ToastAndroid.LONG);
+
+    // Si se selecciona VOLUNTARIO, puede entrar con la genérica o su clave personal
+    if (rolLocal === 'voluntario') {
+      // Entrada con la clave genérica
+      if (clave === CLAVE_DEFAULT) {
+        setRol('voluntario');
+        ToastAndroid.show('Bienvenido Voluntario', ToastAndroid.LONG);
+        return;
+      }
+
+      // Buscamos participante cuya clave coincida
+      const participante = participantes.find(p => p.clave === clave);
+
+      if (!participante) {
+        Alert.alert('Acceso denegado', 'Clave incorrecta.');
+        return;
+      }
+
+      // Actualizas lastLogin del participante
+      const ahora = new Date().toLocaleString(); // cadena con fecha y hora local
+      setParticipantes(prev =>
+        prev.map(p => (p.id === participante.id ? { ...p, lastLogin: ahora } : p))
+      );
+
+      // acceso con clave personalizada de participante
+      setRol('voluntario');
+      ToastAndroid.show(`Bienvenido ${participante.nombre}`, ToastAndroid.LONG);
+    }
   };
 
   return (
@@ -129,7 +162,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     marginBottom: 20,
     justifyContent: 'center'
-
   },
   formInput: {
     flexDirection: 'row',
