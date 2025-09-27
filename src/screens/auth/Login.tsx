@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View, Image, TextInput, Pressable, ToastAndroid, Alert } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { UserRole } from '../../types';
+import { KeyboardAvoidingView, Platform } from 'react-native';
 
-const CLAVE = 'ABC123';
+const ADMIN_KEY = 'AEDB15';
+const VOLUNTEER_KEY = 'LG56JJ';
 
 export default function App() {
   const { setRol } = useData();
@@ -16,73 +18,87 @@ export default function App() {
       Alert.alert('Error', 'La clave debe tener 6 caracteres.');
       return;
     }
-    if (clave !== CLAVE) {
-      Alert.alert('Acceso denegado', 'Clave incorrecta.');
-      return;
+    if (rolLocal === 'voluntario') {
+      if (clave !== VOLUNTEER_KEY) {
+        Alert.alert('Acceso denegado', 'Clave de voluntario incorrecta.');
+        return;
+      }
+      setRol('voluntario');
+      ToastAndroid.show('Bienvenido voluntario', ToastAndroid.LONG);
+    } else {
+      if (clave !== ADMIN_KEY) {
+        Alert.alert('Acceso denegado', 'Clave de administrador incorrecta.');
+        return;
+      }
+      setRol('admin');
+      ToastAndroid.show('Bienvenido administrador', ToastAndroid.LONG);
     }
-    setRol(rolLocal);
-    ToastAndroid.show(`Bienvenido ${rolLocal}`, ToastAndroid.LONG);
   };
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require('../../../assets/BANCO_DE_ALIMENTOS.jpg')}
-        style={styles.ImageBackground}
-      />
-
-      <View style={styles.logoContainer}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.container}>
         <Image
-          source={require('../../../assets/BA_image.png')}
-          style={styles.logoImage}
+          source={require('../../../assets/BANCO_DE_ALIMENTOS.jpg')}
+          style={styles.ImageBackground}
         />
-        <Text style={styles.logoText}>Banco Alimentos</Text>
-      </View>
 
-      {/* Formulario blanco */}
-      <View style={styles.form}>
-        <Text style={styles.formText}>Inicie sesión</Text>
-
-        {/* Selector de rol */}
-        <View style={styles.sliderContainer}>
-          <Pressable
-            style={[styles.sliderBtn, rolLocal === 'voluntario' && styles.sliderBtnActivo]}
-            onPress={() => setRolLocal('voluntario')}
-          >
-            <Text style={[styles.sliderTexto, rolLocal === 'voluntario' && styles.sliderTextoActivo]}>Voluntario</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.sliderBtn, rolLocal === 'admin' && styles.sliderBtnActivo]}
-            onPress={() => setRolLocal('admin')}
-          >
-            <Text style={[styles.sliderTexto, rolLocal === 'admin' && styles.sliderTextoActivo]}>Administrador</Text>
-          </Pressable>
-        </View>
-
-        {/* Input de clave */}
-        <View style={styles.formInput}>
-          <TextInput
-            style={styles.formTextInput}
-            placeholder="Clave de 6 caracteres"
-            value={clave}
-            onChangeText={setClave}
-            maxLength={6}
-            autoCapitalize="characters"
-            secureTextEntry
-            textAlign='center'
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('../../../assets/BA_image.png')}
+            style={styles.logoImage}
           />
+          <Text style={styles.logoText}>Banco Alimentos</Text>
         </View>
 
-        {/* Botón ingresar */}
-        <View style={{ marginTop: 20 }}>
-          <Pressable style={styles.boton} onPress={onLogin}>
-            <Text style={styles.botonTexto}>ENTRAR</Text>
-          </Pressable>
+        {/* Formulario blanco */}
+        <View style={styles.form}>
+          <Text style={styles.formText}>Inicie sesión</Text>
+
+          {/* Selector de rol */}
+          <View style={styles.sliderContainer}>
+            <Pressable
+              style={[styles.sliderBtn, rolLocal === 'voluntario' && styles.sliderBtnActivo]}
+              onPress={() => setRolLocal('voluntario')}
+            >
+              <Text style={[styles.sliderTexto, rolLocal === 'voluntario' && styles.sliderTextoActivo]}>Voluntario</Text>
+            </Pressable>
+            <Pressable
+              style={[styles.sliderBtn, rolLocal === 'admin' && styles.sliderBtnActivo]}
+              onPress={() => setRolLocal('admin')}
+            >
+              <Text style={[styles.sliderTexto, rolLocal === 'admin' && styles.sliderTextoActivo]}>Administrador</Text>
+            </Pressable>
+          </View>
+
+          {/* Input de clave para ambos roles */}
+          <View style={styles.formInput}>
+            <TextInput
+              style={styles.formTextInput}
+              placeholder="Clave de 6 caracteres"
+              value={clave}
+              onChangeText={setClave}
+              maxLength={6}
+              autoCapitalize="characters"
+              secureTextEntry
+              textAlign='center'
+            />
+          </View>
+
+          {/* Botón ingresar */}
+          <View style={{ marginTop: 20 }}>
+            <Pressable style={styles.boton} onPress={onLogin}>
+              <Text style={styles.botonTexto}>ENTRAR</Text>
+            </Pressable>
+          </View>
         </View>
+
+        <StatusBar style="auto" />
       </View>
-
-      <StatusBar style="auto" />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -101,7 +117,7 @@ const styles = StyleSheet.create({
   logoContainer: {
     position: 'absolute',
     alignSelf: 'center',
-    top: '15%',
+    top: '12%',
     alignItems: 'center',
   },
   logoImage: {
@@ -116,7 +132,7 @@ const styles = StyleSheet.create({
   },
   form: {
     width: '100%',
-    height: '40%',
+    height: '52%',
     backgroundColor: 'white',
     position: 'absolute',
     bottom: 0,

@@ -11,6 +11,9 @@ interface DataContextValue {
   setEntregas: React.Dispatch<React.SetStateAction<Delivery[]>>;
   productos: Product[];
   participantes: Participant[];
+  setParticipantes: React.Dispatch<React.SetStateAction<Participant[]>>;
+  loginById: (id: string) => boolean;
+  addParticipant: (nombre: string) => string;
   iniciarEntrega: (id: string) => void;
   finalizarEntrega: (id: string) => void;
   agregarEntrega: (nueva: Omit<Delivery, 'id'>) => void;
@@ -25,7 +28,23 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [rol, setRol] = useState<UserRole | null>(null);
   const [entregas, setEntregas] = useState<Delivery[]>(entregasSeed);
   const [productos, setProductos] = useState<Product[]>(productosSeed);
-  const [participantes] = useState<Participant[]>(participantesSeed);
+  const [participantes, setParticipantes] = useState<Participant[]>(participantesSeed);
+  // Login by participant ID
+  const loginById = (id: string) => {
+    const found = participantes.find(p => p.id === id.trim());
+    if (found) {
+      setRol('voluntario');
+      return true;
+    }
+    return false;
+  };
+
+  // Admin: add new participant
+  const addParticipant = (nombre: string) => {
+    const id = `par-${Math.random().toString(36).slice(2, 7)}`;
+    setParticipantes(prev => [...prev, { id, nombre }]);
+    return id;
+  };
 
   const iniciarEntrega = (id: string) => {
     setEntregas(prev => prev.map(e => (e.id === id ? { ...e, estado: 'activo' } : e)));
@@ -68,6 +87,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setEntregas,
       productos,
       participantes,
+      setParticipantes,
+      loginById,
+      addParticipant,
       iniciarEntrega,
       finalizarEntrega,
       agregarEntrega,

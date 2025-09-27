@@ -23,7 +23,7 @@ const AllParticipants: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.background, padding: theme.spacing.lg },
+  container: { flex: 1, backgroundColor: theme.colors.surfaceLight, padding: theme.spacing.lg },
   item: { ...commonStyles.card },
   nombre: { ...theme.typography.bodyBold, color: theme.colors.text },
 });
