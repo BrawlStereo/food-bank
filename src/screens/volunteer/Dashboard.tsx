@@ -1,21 +1,18 @@
 import React from 'react';
-import { FlatList, StyleSheet, Text, View, Pressable, Alert, Image, Dimensions } from 'react-native';
+import { FlatList, StyleSheet, Text, View, Pressable, Image, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useData } from '../../context/DataContext';
-import { theme, commonStyles } from '../../styles/theme';
+import { theme } from '../../styles/theme';
 
 const VolunteerDashboard: React.FC = () => {
-  const { entregas } = useData();
+  const { entregas, claveUsuario, entregasAsignadas} = useData();
   const navigation = useNavigation<any>();
-
-  const activas = entregas.filter(e => e.estado === 'activo');
-  const pasadas = entregas.filter(e => e.estado === 'pasado');
-
-  // Logout handled in navigation
-
   const screenHeight = Dimensions.get('window').height;
 
-  // Tarjeta de entrega activa
+
+
+  const pasadas = entregas.filter(e => e.estado === 'pasado');
+
   const renderItem = ({ item }: any) => (
     <Pressable
       style={styles.card}
@@ -38,15 +35,9 @@ const VolunteerDashboard: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.seccionTitulo}>Entregas activas</Text>
-        {/* Logout button removed, will be handled in navigation */}
-      </View>
-
-      {/* Lista de entregas activas */}
+      <Text style={styles.seccionTitulo}>Entregas activas</Text>
       <FlatList
-        data={activas}
+        data={entregasAsignadas}
         keyExtractor={i => i.id}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
@@ -57,12 +48,11 @@ const VolunteerDashboard: React.FC = () => {
               style={{ width: 80, height: 80, marginBottom: 10 }}
               resizeMode="contain"
             />
-            <Text style={styles.emptyText}>No hay entregas activas</Text>
+            <Text style={styles.emptyText}>No hay entregas activas asignadas</Text>
           </View>
-  }
+        }
       />
 
-      {/* Entregas pasadas con maxHeight 40% */}
       <Text style={[styles.seccionTitulo, { marginTop: theme.spacing.lg }]}>Entregas pasadas</Text>
       <View style={{ maxHeight: screenHeight * 0.4 }}>
         <FlatList
@@ -90,6 +80,7 @@ const VolunteerDashboard: React.FC = () => {
     </View>
   );
 };
+
 
 const styles = StyleSheet.create({
   container: {
@@ -164,8 +155,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 2,
   },
-  // removed duplicate cardTitulo
-  // removed duplicate cardDetalle
   cardAccion: { 
     color: theme.colors.primary, 
     ...theme.typography.body,

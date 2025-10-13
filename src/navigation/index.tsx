@@ -11,10 +11,15 @@ import Participants from '../screens/admin/Participants';
 import AllProducts from '../screens/admin/AllProducts';
 import AllParticipants from '../screens/admin/AllParticipants';
 import AddProductScreen from '../screens/admin/AddProduct';
+import AddProductToDeliveries from '../screens/admin/AddProductToDeliveries'
 import { useData } from '../context/DataContext';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Alert, Pressable } from 'react-native';
 import { theme } from '../styles/theme';
+import { Product } from '../types'; 
+
+
+
 
 export type RootStackParamList = {
   Login: undefined;
@@ -38,7 +43,12 @@ export type AdminStackParamList = {
   TodosProductos: undefined;
   TodosParticipantes: undefined;
   AddProduct: undefined;
+  AddProductToDeliveries: { 
+    seleccionados: Product[]; 
+    onDone: (productos: Product[]) => void;
+  };
 };
+
 
 const RootStack = createNativeStackNavigator<RootStackParamList>();
 const VolunteerStack = createNativeStackNavigator<VolunteerStackParamList>();
@@ -121,6 +131,8 @@ const AdminStackScreens = () => {
       <AdminStack.Screen name="TodosProductos" component={AllProducts} options={{ title: 'Productos' }} />
       <AdminStack.Screen name="AddProduct" component={AddProductScreen} options={{ title: 'Agregar Producto' }} />
       <AdminStack.Screen name="TodosParticipantes" component={AllParticipants} options={{ title: 'Participantes' }} />
+      <AdminStack.Screen name="AddProductToDeliveries" component={AddProductToDeliveries} options={{ title: 'Agregar Productos a la Entrega' }} 
+/>
     </AdminStack.Navigator>
   );
 };

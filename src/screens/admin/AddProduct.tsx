@@ -9,16 +9,21 @@ const AddProductScreen: React.FC = ({ navigation }: any) => {
   const [imagen, setImagen] = useState('');
   const [busy, setBusy] = useState(false);
 
-  const onSave = () => {
-    if (!nombre.trim()) {
-      Alert.alert('Validación', 'El nombre es obligatorio');
-      return;
-    }
-    setBusy(true);
-    agregarProducto({ nombre: nombre.trim(), imagen: imagen.trim() || 'https://via.placeholder.com/64' });
-    setBusy(false);
-    navigation.goBack();
-  };
+  const onSave = async () => {
+  if (!nombre.trim()) {
+    Alert.alert('Validación', 'El nombre es obligatorio');
+    return;
+  }
+
+  setBusy(true);
+  await agregarProducto({
+    nombre: nombre.trim(),
+    imagen: imagen.trim() || 'https://via.placeholder.com/64',
+  });
+  setBusy(false);
+  navigation.goBack();
+};
+
 
   return (
     <View style={styles.container}>

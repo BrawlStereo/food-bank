@@ -1,30 +1,42 @@
 import React from 'react';
-import { FlatList, StyleSheet, Text, View, Pressable, Alert, Image, Dimensions } from 'react-native';
+import { 
+  FlatList, StyleSheet, Text, View, Pressable, Alert, Image, Dimensions 
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useData } from '../../context/DataContext';
-import { theme, commonStyles } from '../../styles/theme';
+import { theme } from '../../styles/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 
-
+// Componente principal del Dashboard de administrador
 const AdminDashboard: React.FC = () => {
 
+  // Obtiene del contexto las entregas y la función para finalizar entregas
   const { entregas, finalizarEntrega } = useData();
+
+  // Hook de navegación para moverse entre pantallas
   const navigation = useNavigation<any>();
 
+  // Separa entregas activas y pasadas dependiendo de su estado
   const actuales = entregas.filter(e => e.estado === 'activo');
   const pasadas = entregas.filter(e => e.estado === 'pasado');
+
   const screenHeight = Dimensions.get('window').height;
 
-  // Logout handled in navigation
+  // Componente interno para mostrar cada card de entrega
+  //** Card es un componente interno que representa cada entrega. 
+  // Muestra título y detalles de fecha y ubicación. */
 
   const Card = ({ item }: any) => (
     <View style={styles.card}>
+      {/* Sección izquierda del card */}
       <View style={{ flex: 1, paddingRight: 10, justifyContent: 'space-between' }}>
         <View>
           <Text style={styles.cardTitulo}>{item.titulo}</Text>
           <Text style={styles.cardDetalle}>{item.fecha} · {item.ubicacion}</Text>
         </View>
-        {item.estado === 'activo' && (
+
+        {/* Botón Finalizar (si la entrega está activa) */}
+        {item.estado === 'activo' && ( // Si la entrega está activa, muestra un botón Finalizar.
           <Pressable
             style={[styles.primario, { marginTop: 7 }]}
             onPress={() =>
@@ -33,7 +45,11 @@ const AdminDashboard: React.FC = () => {
                 '¿Quieres marcar esta entrega como finalizada?',
                 [
                   { text: 'Cancelar', style: 'cancel' },
-                  { text: 'Finalizar', style: 'destructive', onPress: () => finalizarEntrega(item.id) }
+                  { 
+                    text: 'Finalizar', 
+                    style: 'destructive', 
+                    onPress: () => finalizarEntrega(item.id) 
+                  }
                 ]
               )
             }
@@ -43,12 +59,18 @@ const AdminDashboard: React.FC = () => {
         )}
       </View>
 
+      {/* Sección derecha del card */}
       <View style={{ alignItems: 'flex-end', justifyContent: 'space-between' }}>
+        {/* Imagen que cambia según estado de la entrega */}
         <Image
-          source={item.estado === 'activo' ? require('../../../assets/Camion.png') : require('../../../assets/Ready.png')}
+          source={
+            item.estado === 'activo' //** si está activa la entrega se muestra el camion */
+              ? require('../../../assets/Camion.png') : require('../../../assets/Ready.png')
+          }
           style={{ width: 70, height: 60, borderRadius: 8 }}
           resizeMode="cover"
         />
+        {/* Botón para ir a pantalla de detalles */}
         <Pressable
           onPress={() => navigation.navigate('DetallesEntrega', { id: item.id })}
           style={styles.linkBtn}
@@ -59,21 +81,22 @@ const AdminDashboard: React.FC = () => {
     </View>
   );
 
+  // Render principal del dashboard
   return (
     <View style={styles.container}>
-      {/* Logout button removed, will be handled in navigation */}
-
-      {/* Logo and welcome message */}
+      
+      {/* Header con bienvenida y logo */}
       <View style={styles.headerBox}>
-        <Text style={styles.welcomeText}>BIENVENIDO, ISAAC NUÑEZ</Text>
+        <Text style={styles.welcomeText}>BIENVENIDO, Diego Nuñez</Text>
         <Image source={require('../../../assets/BA_image.png')} style={styles.logo} />
       </View>
 
-  <Text style={styles.seccionTitulo}>ENTREGAS DE HOY:</Text>
+      {/* Lista de entregas activas */}
+      <Text style={styles.seccionTitulo}>ENTREGAS DE HOY:</Text>
       <FlatList
-        data={actuales}
-        keyExtractor={i => i.id}
-        renderItem={({ item }) => <Card item={item} />}
+        data={actuales} // solo entregas activas, esto se define en el DataContext
+        keyExtractor={i => i.id} // Cada elemento tiene una clave única para que React Native pueda optimizar el renderizado.
+        renderItem={({ item }) => <Card item={item} />} //Cada elemento de la lista se renderiza usando un componente Card.
         contentContainerStyle={styles.list}
         ListEmptyComponent={
           <View style={styles.emptyBox}>
@@ -87,10 +110,11 @@ const AdminDashboard: React.FC = () => {
         }
       />
 
+      {/* Lista de entregas pasadas */}
       <Text style={[styles.seccionTitulo, { marginTop: theme.spacing.lg }]}>ENTREGAS PASADAS:</Text>
       <View style={{ maxHeight: screenHeight * 0.3 }}>
         <FlatList
-          data={pasadas}
+          data={pasadas} // solo entregas finalizadas
           keyExtractor={i => i.id}
           renderItem={({ item }) => <Card item={item} />}
           contentContainerStyle={styles.list}
@@ -100,7 +124,7 @@ const AdminDashboard: React.FC = () => {
         />
       </View>
 
-      {/* Bottom navigation bar */}
+      {/* Barra inferior de navegación rápida */}
       <View style={styles.bottomBar}>
         <Pressable style={styles.bottomBtn} onPress={() => navigation.navigate('NuevaEntrega')}>
           <MaterialIcons name="local-shipping" size={28} color={theme.colors.primary} />
@@ -125,7 +149,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFB97A',
     paddingHorizontal: 10,
     paddingTop: 32,
-    paddingBottom: 90, // for bottom bar
+    paddingBottom: 90, 
   },
   headerBox: {
     flexDirection: 'row',

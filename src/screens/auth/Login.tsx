@@ -4,10 +4,10 @@ import { StyleSheet, Text, View, Image, TextInput, Pressable, ToastAndroid, Aler
 import { useData } from '../../context/DataContext';
 import { UserRole } from '../../types';
 
-const CLAVE_DEFAULT = 'ABC123'; // clave por defecto para admin y voluntario
+const CLAVE_DEFAULT = 'ABC123'; // clave por defecto para admin o voluntario
 
 export default function App() {
-  const { setRol, participantes, setParticipantes } = useData(); // ahora también traemos setParticipantes
+  const { setRol, participantes, setParticipantes, setClaveUsuario } = useData();
   const [clave, setClave] = useState('');
   const [rolLocal, setRolLocal] = useState<UserRole>('voluntario');
 
@@ -17,101 +17,80 @@ export default function App() {
       return;
     }
 
-    // Si se selecciona ADMIN, solo puede entrar con la clave genérica
+    // ADMIN solo con clave genérica
     if (rolLocal === 'admin') {
       if (clave === CLAVE_DEFAULT) {
         setRol('admin');
+        setClaveUsuario(clave);
         ToastAndroid.show('Bienvenido Administrador', ToastAndroid.LONG);
       } else {
         Alert.alert('Acceso denegado', 'Clave incorrecta para administrador.');
       }
-      return; // salimos de la función
+      return;
     }
 
-    // Si se selecciona VOLUNTARIO, puede entrar con la genérica o su clave personal
+    // VOLUNTARIO: genérica o individual
     if (rolLocal === 'voluntario') {
-      // Entrada con la clave genérica
       if (clave === CLAVE_DEFAULT) {
         setRol('voluntario');
+        setClaveUsuario('ABC123'); // especial para ver todas las entregas
         ToastAndroid.show('Bienvenido Voluntario', ToastAndroid.LONG);
         return;
       }
 
-      // Buscamos participante cuya clave coincida
       const participante = participantes.find(p => p.clave === clave);
-
       if (!participante) {
         Alert.alert('Acceso denegado', 'Clave incorrecta.');
         return;
       }
 
-      // Actualizas lastLogin del participante
-      const ahora = new Date().toLocaleString(); // cadena con fecha y hora local
+      // Actualizar lastLogin localmente
+      const ahora = new Date().toLocaleString();
       setParticipantes(prev =>
-        prev.map(p => (p.id === participante.id ? { ...p, lastLogin: ahora } : p))
+        prev.map(p => p.id === participante.id ? { ...p, lastLogin: ahora } : p)
       );
 
-      // acceso con clave personalizada de participante
       setRol('voluntario');
+      setClaveUsuario(participante.id); // guarda el ID real del voluntario
       ToastAndroid.show(`Bienvenido ${participante.nombre}`, ToastAndroid.LONG);
     }
   };
 
   return (
     <View style={styles.container}>
-      <Image
-        source={require('../../../assets/BANCO_DE_ALIMENTOS.jpg')}
-        style={styles.ImageBackground}
-      />
+      <Image source={require('../../../assets/BANCO_DE_ALIMENTOS.jpg')} style={styles.ImageBackground} />
 
       <View style={styles.logoContainer}>
-        <Image
-          source={require('../../../assets/BA_image.png')}
-          style={styles.logoImage}
-        />
+        <Image source={require('../../../assets/BA_image.png')} style={styles.logoImage} />
         <Text style={styles.logoText}>Banco Alimentos</Text>
       </View>
 
-      {/* Formulario blanco */}
       <View style={styles.form}>
         <Text style={styles.formText}>Inicie sesión</Text>
 
-        {/* Selector de rol */}
         <View style={styles.sliderContainer}>
-          <Pressable
-            style={[styles.sliderBtn, rolLocal === 'voluntario' && styles.sliderBtnActivo]}
-            onPress={() => setRolLocal('voluntario')}
-          >
+          <Pressable style={[styles.sliderBtn, rolLocal === 'voluntario' && styles.sliderBtnActivo]} onPress={() => setRolLocal('voluntario')}>
             <Text style={[styles.sliderTexto, rolLocal === 'voluntario' && styles.sliderTextoActivo]}>Voluntario</Text>
           </Pressable>
-          <Pressable
-            style={[styles.sliderBtn, rolLocal === 'admin' && styles.sliderBtnActivo]}
-            onPress={() => setRolLocal('admin')}
-          >
+          <Pressable style={[styles.sliderBtn, rolLocal === 'admin' && styles.sliderBtnActivo]} onPress={() => setRolLocal('admin')}>
             <Text style={[styles.sliderTexto, rolLocal === 'admin' && styles.sliderTextoActivo]}>Administrador</Text>
           </Pressable>
         </View>
 
-        {/* Input de clave */}
-        <View style={styles.formInput}>
-          <TextInput
-            style={styles.formTextInput}
-            placeholder="Clave de 6 caracteres"
-            value={clave}
-            onChangeText={setClave}
-            maxLength={6}
-            autoCapitalize="characters"
-            secureTextEntry
-            textAlign='center'
-          />
-        </View>
+        <TextInput
+          style={styles.formTextInput}
+          placeholder="Clave de 6 caracteres"
+          value={clave}
+          onChangeText={setClave}
+          maxLength={6}
+          autoCapitalize="characters"
+          secureTextEntry
+          textAlign="center"
+        />
 
-        {/* Botón ingresar */}
-        <View style={{ marginTop: 20 }}>
-          <Pressable style={styles.boton} onPress={onLogin}>
-            <Text style={styles.botonTexto}>ENTRAR</Text>
-          </Pressable>
-        </View>
+        <Pressable style={styles.boton} onPress={onLogin}>
+          <Text style={styles.botonTexto}>ENTRAR</Text>
+        </Pressable>
       </View>
 
       <StatusBar style="auto" />
