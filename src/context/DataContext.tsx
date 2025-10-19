@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo, useState, useEffect } from 'react';
 import { Delivery, Participant, Product, UserRole, NewDeliveryPayload, DeliveryProduct, DeliveryRecord } from '../types';
-import { collection, onSnapshot, addDoc, doc, updateDoc, getDoc, DocumentData } from 'firebase/firestore';
+import { collection, onSnapshot, addDoc, doc, updateDoc, getDoc, deleteDoc, DocumentData } from 'firebase/firestore';
 import { db } from '../fireBase/firebaseConfig';
 
 // Generador de clave aleatoria de 6 caracteres
@@ -34,16 +34,28 @@ interface DataContextType {
 
   logout: () => void; // Cierra sesión. LoginScreen y dashboards
 
-  registrarProducto: (entregaId: string, productoId: string, voluntarioNombre: string) => Promise<void>; // Marca producto 'entregado' en Firebase. DeliveryDetails
-
-  agregarProducto: (nuevo: Omit<Product, 'id'>) => Promise<void>; // Agregar nuevo producto. AllProducts
+  registrarProducto: (entregaId: string, productoId: string, voluntarioNombre: string, voluntarioClave?: string) => Promise<void>; // Marca producto 'entregado' en Firebase. DeliveryDetails
+  
+  agregarProducto: (nuevo: Omit<Product, 'id'>) => Promise<void>; // Agregar nuevo producto. AllProducts (nuevo incluye categoria opcional)
+  actualizarProducto: (id: string, updates: Partial<Omit<Product, 'id'>>) => Promise<void>;
+  eliminarProducto: (id: string) => Promise<void>;
 
   agregarParticipante: (nombre: string) => Promise<void>; // Crear nuevo voluntario. AllProducts
+  actualizarParticipante: (id: string, updates: Partial<Pick<Participant, 'nombre' | 'lastLogin'>>) => Promise<void>;
+  eliminarParticipante: (id: string) => Promise<void>;
   
-  registrarEntregaProducto: (entregaId: string, productoId: string, voluntarioNombre: string) => void; // Marca producto entregado localmente. VolunteerDashboard
+  registrarEntregaProducto: (entregaId: string, productoId: string, voluntarioNombre: string, voluntarioClave?: string) => void; // Marca producto entregado localmente. VolunteerDashboard
 
   claveUsuario: string | null; // Clave del voluntario o admin. Login y VolunteerDashboard
   setClaveUsuario: React.Dispatch<React.SetStateAction<string | null>>;
+
+  // Datos del usuario actual en sesión
+  currentUserNombre: string | null;
+  setCurrentUserNombre: React.Dispatch<React.SetStateAction<string | null>>;
+  currentUserClave: string | null;
+  setCurrentUserClave: React.Dispatch<React.SetStateAction<string | null>>;
+  currentUserId: string | null;
+  setCurrentUserId: React.Dispatch<React.SetStateAction<string | null>>;
 }
 
 // Crea el contexto
@@ -59,6 +71,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [productos, setProductos] = useState<Product[]>([]); 
   const [participantes, setParticipantes] = useState<Participant[]>([]);
   const [claveUsuario, setClaveUsuario] = useState<string | null>(null);
+  const [currentUserNombre, setCurrentUserNombre] = useState<string | null>(null);
+  const [currentUserClave, setCurrentUserClave] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Listeners en tiempo real desde Firebase
   // Se actualizan automáticamente cuando cambia la colección
@@ -88,7 +103,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Función para marcar un producto como entregado localmente
   // Se usa en VolunteerDashboard para mostrar cambios inmediatos sin recargar Firebase
-  const marcarProductoEntregado = (entregaId: string, productoId: string, voluntarioNombre: string) => {
+  const marcarProductoEntregado = (entregaId: string, productoId: string, voluntarioNombre: string, voluntarioClave?: string) => {
     setEntregas(prev =>
       prev.map(ent => {
         if (ent.id !== entregaId) return ent;
@@ -101,6 +116,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           productoId,
           productoNombre: productosActualizados.find(p => p.id === productoId)?.nombre || '',
           voluntarioNombre,
+          voluntarioClave: voluntarioClave,
+          nombre: currentUserNombre || voluntarioNombre,
+          clave: currentUserClave || voluntarioClave,
           fechaHora: new Date().toLocaleString(),
         };
 
@@ -138,9 +156,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await addDoc(collection(db, 'participants'), { nombre, clave: generarClave(), lastLogin: null });
   };
 
+  const actualizarParticipante = async (id: string, updates: Partial<Pick<Participant, 'nombre' | 'lastLogin'>>) => {
+    await updateDoc(doc(db, 'participants', id), { ...updates });
+  };
+
+  const eliminarParticipante = async (id: string) => {
+    await deleteDoc(doc(db, 'participants', id));
+  };
+
   // Registrar un producto como entregado en Firebase
   // DeliveryDetails
-  const registrarProducto = async (entregaId: string, productoId: string, voluntarioNombre: string) => {
+  const registrarProducto = async (entregaId: string, productoId: string, voluntarioNombre: string, voluntarioClave?: string) => {
     try {
       const ref = doc(db, 'deliveries', entregaId);
       const snap = await getDoc(ref);
@@ -153,6 +179,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         productoId,
         productoNombre: data.productos?.find(p => p.id === productoId)?.nombre || 'Desconocido',
         voluntarioNombre,
+        voluntarioClave: voluntarioClave,
+        nombre: currentUserNombre || voluntarioNombre,
+        clave: currentUserClave || voluntarioClave,
         fechaHora: new Date().toISOString(),
       }];
       await updateDoc(ref, { productos: productosActualizados, registros: nuevosRegistros });
@@ -167,8 +196,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await addDoc(collection(db, 'products'), {
       nombre: nuevo.nombre,
       imagen: nuevo.imagen || 'https://via.placeholder.com/64',
+      categoria: (nuevo as any).categoria || null,
       creadoEn: new Date().toISOString(),
     });
+  };
+
+  const actualizarProducto = async (id: string, updates: Partial<Omit<Product, 'id'>>) => {
+    await updateDoc(doc(db, 'products', id), { ...updates });
+  };
+
+  const eliminarProducto = async (id: string) => {
+    await deleteDoc(doc(db, 'products', id));
   };
 
   // Cerrar sesión, limpiar rol y clave
@@ -176,6 +214,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const logout = () => {
     setRol(null);
     setClaveUsuario(null);
+    setCurrentUserNombre(null);
+    setCurrentUserClave(null);
+    setCurrentUserId(null);
   };
 
   // Filtra entregas activas asignadas al voluntario actual
@@ -202,11 +243,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     logout,
     registrarProducto,
     agregarProducto,
+  actualizarProducto,
+  eliminarProducto,
     agregarParticipante,
+  actualizarParticipante,
+  eliminarParticipante,
     registrarEntregaProducto,
     claveUsuario,
     setClaveUsuario,
-  }), [rol, entregas, productos, participantes, claveUsuario]);
+    currentUserNombre,
+    setCurrentUserNombre,
+    currentUserClave,
+    setCurrentUserClave,
+    currentUserId,
+    setCurrentUserId,
+  }), [rol, entregas, productos, participantes, claveUsuario, currentUserNombre, currentUserClave, currentUserId]);
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
 };

@@ -1,27 +1,28 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, Image, TextInput, Pressable, ToastAndroid, Alert } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, Pressable, ToastAndroid, Alert, ImageBackground } from 'react-native';
 import { useData } from '../../context/DataContext';
 import { UserRole } from '../../types';
 
-const CLAVE_DEFAULT = 'ABC123'; // clave por defecto para admin o voluntario
+const ADMIN_KEY = 'ADMIN123'; // clave por defecto para Admin
+const VOLUNTARIO_KEY = 'ABC123'; // clave genérica para voluntario (ver todas las entregas)
 
 export default function App() {
-  const { setRol, participantes, setParticipantes, setClaveUsuario } = useData();
+  const { setRol, participantes, setParticipantes, setClaveUsuario, setCurrentUserNombre, setCurrentUserClave, setCurrentUserId } = useData();
   const [clave, setClave] = useState('');
   const [rolLocal, setRolLocal] = useState<UserRole>('voluntario');
 
   const onLogin = () => {
-    if (clave.trim().length !== 6) {
-      Alert.alert('Error', 'La clave debe tener 6 caracteres.');
-      return;
-    }
+    const typed = clave.trim().toUpperCase();
 
-    // ADMIN solo con clave genérica
+    // ADMIN con clave específica
     if (rolLocal === 'admin') {
-      if (clave === CLAVE_DEFAULT) {
+      if (typed === ADMIN_KEY) {
         setRol('admin');
-        setClaveUsuario(clave);
+        setClaveUsuario(typed);
+        setCurrentUserNombre('Administrador');
+        setCurrentUserClave(typed);
+        setCurrentUserId('admin');
         ToastAndroid.show('Bienvenido Administrador', ToastAndroid.LONG);
       } else {
         Alert.alert('Acceso denegado', 'Clave incorrecta para administrador.');
@@ -31,14 +32,22 @@ export default function App() {
 
     // VOLUNTARIO: genérica o individual
     if (rolLocal === 'voluntario') {
-      if (clave === CLAVE_DEFAULT) {
+      if (typed === VOLUNTARIO_KEY) {
         setRol('voluntario');
-        setClaveUsuario('ABC123'); // especial para ver todas las entregas
+        setClaveUsuario(VOLUNTARIO_KEY); // especial para ver todas las entregas
+        setCurrentUserNombre('Voluntario');
+        setCurrentUserClave(VOLUNTARIO_KEY);
+        setCurrentUserId('generic');
         ToastAndroid.show('Bienvenido Voluntario', ToastAndroid.LONG);
         return;
       }
 
-      const participante = participantes.find(p => p.clave === clave);
+      if (typed.length !== 6) {
+        Alert.alert('Error', 'La clave debe tener 6 caracteres.');
+        return;
+      }
+
+      const participante = participantes.find(p => p.clave === typed);
       if (!participante) {
         Alert.alert('Acceso denegado', 'Clave incorrecta.');
         return;
@@ -50,41 +59,45 @@ export default function App() {
         prev.map(p => p.id === participante.id ? { ...p, lastLogin: ahora } : p)
       );
 
-      setRol('voluntario');
-      setClaveUsuario(participante.id); // guarda el ID real del voluntario
+  setRol('voluntario');
+  setClaveUsuario(participante.id); // guarda el ID real del voluntario
+  setCurrentUserNombre(participante.nombre);
+  setCurrentUserClave(participante.clave ?? '');
+  setCurrentUserId(participante.id);
       ToastAndroid.show(`Bienvenido ${participante.nombre}`, ToastAndroid.LONG);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Image source={require('../../../assets/BANCO_DE_ALIMENTOS.jpg')} style={styles.ImageBackground} />
-
-      <View style={styles.logoContainer}>
-        <Image source={require('../../../assets/BA_image.png')} style={styles.logoImage} />
-        <Text style={styles.logoText}>Banco Alimentos</Text>
+    <ImageBackground source={require('../../../assets/background.png')} style={styles.container} imageStyle={styles.bgImage}>
+      <View style={styles.headerLogoWrap} pointerEvents="none">
+        <View style={styles.logoBackdrop}>
+          <Image source={require('../../../assets/BAMX.png')} style={styles.logoImage} />
+        </View>
       </View>
 
-      <View style={styles.form}>
+      <View style={styles.loginCard}>
         <Text style={styles.formText}>Inicie sesión</Text>
 
         <View style={styles.sliderContainer}>
-          <Pressable style={[styles.sliderBtn, rolLocal === 'voluntario' && styles.sliderBtnActivo]} onPress={() => setRolLocal('voluntario')}>
+          <Pressable style={[styles.sliderBtn, rolLocal === 'voluntario' && styles.sliderBtnActivo]} onPress={() => { setRolLocal('voluntario'); setClave(''); }}>
             <Text style={[styles.sliderTexto, rolLocal === 'voluntario' && styles.sliderTextoActivo]}>Voluntario</Text>
           </Pressable>
-          <Pressable style={[styles.sliderBtn, rolLocal === 'admin' && styles.sliderBtnActivo]} onPress={() => setRolLocal('admin')}>
+          <Pressable style={[styles.sliderBtn, rolLocal === 'admin' && styles.sliderBtnActivo]} onPress={() => { setRolLocal('admin'); setClave(''); }}>
             <Text style={[styles.sliderTexto, rolLocal === 'admin' && styles.sliderTextoActivo]}>Administrador</Text>
           </Pressable>
         </View>
 
         <TextInput
+          key={rolLocal}
           style={styles.formTextInput}
-          placeholder="Clave de 6 caracteres"
+          placeholder={rolLocal === 'voluntario' ? 'Clave de 6 caracteres' : 'Clave de administrador'}
           value={clave}
           onChangeText={setClave}
-          maxLength={6}
+          {...(rolLocal === 'voluntario' ? { maxLength: 6 } : {})}
           autoCapitalize="characters"
-          secureTextEntry
+          secureTextEntry={true}
+          autoCorrect={false}
           textAlign="center"
         />
 
@@ -93,8 +106,8 @@ export default function App() {
         </Pressable>
       </View>
 
-      <StatusBar style="auto" />
-    </View>
+      <StatusBar style="light" />
+    </ImageBackground>
   );
 }
 
@@ -105,36 +118,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ImageBackground: {
-    width: '100%',
-    height: '100%',
+  bgImage: {
     opacity: 0.6,
   },
-  logoContainer: {
+  headerLogoWrap: {
     position: 'absolute',
-    alignSelf: 'center',
-    top: '15%',
+    top: '12%',
     alignItems: 'center',
   },
+  logoBackdrop: {
+    backgroundColor: 'rgba(255,255,255,0.5)',
+    borderRadius: 16,
+    paddingVertical: 7.5,
+    paddingHorizontal: 2,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+  },
   logoImage: {
-    width: 200,
-    height: 210,
+    width: 250,
+    height: 130,
+    resizeMode: 'contain',
   },
-  logoText: {
-    color: 'white',
-    fontSize: 26,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  form: {
-    width: '100%',
-    height: '40%',
-    backgroundColor: 'white',
-    position: 'absolute',
-    bottom: 0,
-    borderTopLeftRadius: 40,
-    borderTopRightRadius: 40,
-    padding: 30,
+  loginCard: {
+    width: '86%',
+    minHeight: 260,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 22,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
   formText: {
     fontWeight: 'bold',
@@ -152,12 +170,13 @@ const styles = StyleSheet.create({
     borderBottomColor: '#EBEBEB',
     marginLeft: 5,
     paddingVertical: 5,
+    color: '#000',
   },
   sliderContainer: {
     flexDirection: 'row',
     backgroundColor: '#f0f0f0',
     borderRadius: 20,
-    marginVertical: 20,
+    marginBottom: 20,
   },
   sliderBtn: {
     flex: 1,

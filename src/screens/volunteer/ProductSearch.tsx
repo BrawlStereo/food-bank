@@ -6,7 +6,7 @@ import { theme } from '../../styles/theme';
 import { MaterialIcons } from '@expo/vector-icons';
 
 const ProductSearch: React.FC = () => {
-  const { entregas, registrarProducto, registrarEntregaProducto } = useData();
+  const { entregas, registrarProducto, registrarEntregaProducto, participantes, claveUsuario } = useData();
   const route = useRoute<any>();
   const navigation = useNavigation<any>();
   const entregaId = route.params?.entregaId as string;
@@ -45,10 +45,15 @@ const ProductSearch: React.FC = () => {
     if (!entrega) return;
 
     try {
-      // Actualiza Firestore
-      await registrarProducto(entregaId, productoId, 'Voluntario Demo');
-      // Actualiza estado local global
-      registrarEntregaProducto(entregaId, productoId, 'Voluntario Demo');
+      // Deriva nombre y clave del voluntario desde el contexto
+      const clave = claveUsuario || undefined;
+      const participante = participantes.find(p => p.clave === clave);
+      const nombreVoluntario = participante?.nombre || 'Voluntario Demo';
+
+      // Actualiza Firestore incluyendo la clave del voluntario
+      await registrarProducto(entregaId, productoId, nombreVoluntario, clave);
+      // Actualiza estado local global (incluye clave también)
+      registrarEntregaProducto(entregaId, productoId, nombreVoluntario, clave);
 
       // Muestra snackbar
       setSnackbar({ visible: true, text: `Producto "${productoNombre}" entregado.` });
@@ -113,7 +118,6 @@ const ProductSearch: React.FC = () => {
         columnWrapperStyle={{ gap: 16 }}
         contentContainerStyle={{ gap: 16, paddingBottom: 32, paddingTop: 8 }}
         renderItem={({ item }) => {
-          const entregado = entrega?.productos?.find(p => p.id === item.id)?.estado === 'entregado';
           return (
             <View style={styles.itemCard} key={item.id}>
               <Image
@@ -121,10 +125,10 @@ const ProductSearch: React.FC = () => {
               />
               <Text style={styles.nombre}>{item.nombre.toUpperCase()}</Text>
               <Pressable
-                style={[styles.entregarBtn, entregado && { backgroundColor: '#aaa' }]}
-                onPress={() => !entregado && registrar(item.id, item.nombre)}
+                style={styles.entregarBtn}
+                onPress={() => registrar(item.id, item.nombre)}
               >
-                <Text style={styles.entregarBtnTxt}>{entregado ? 'ENTREGADO' : 'ENTREGAR'}</Text>
+                <Text style={styles.entregarBtnTxt}>ENTREGAR</Text>
               </Pressable>
             </View>
           );

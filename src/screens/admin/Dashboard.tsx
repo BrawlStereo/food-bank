@@ -87,12 +87,12 @@ const AdminDashboard: React.FC = () => {
       
       {/* Header con bienvenida y logo */}
       <View style={styles.headerBox}>
-        <Text style={styles.welcomeText}>BIENVENIDO, Diego Nuñez</Text>
+        <Text style={styles.welcomeText}>Bienvenido, Administrador</Text>
         <Image source={require('../../../assets/BA_image.png')} style={styles.logo} />
       </View>
 
       {/* Lista de entregas activas */}
-      <Text style={styles.seccionTitulo}>ENTREGAS DE HOY:</Text>
+      <Text style={styles.seccionTitulo}>Entregas activas:</Text>
       <FlatList
         data={actuales} // solo entregas activas, esto se define en el DataContext
         keyExtractor={i => i.id} // Cada elemento tiene una clave única para que React Native pueda optimizar el renderizado.
@@ -111,7 +111,7 @@ const AdminDashboard: React.FC = () => {
       />
 
       {/* Lista de entregas pasadas */}
-      <Text style={[styles.seccionTitulo, { marginTop: theme.spacing.lg }]}>ENTREGAS PASADAS:</Text>
+      <Text style={[styles.seccionTitulo, { marginTop: theme.spacing.lg }]}>Entregas pasadas:</Text>
       <View style={{ maxHeight: screenHeight * 0.3 }}>
         <FlatList
           data={pasadas} // solo entregas finalizadas

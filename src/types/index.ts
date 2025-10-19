@@ -17,6 +17,7 @@ export interface Product {
   id: string;
   nombre: string;
   imagen: string; // URL o ruta de imagen
+  categoria?: string; // categoría opcional del producto
 }
 
 // Registro de un producto entregado
@@ -25,6 +26,9 @@ export interface DeliveryRecord {
   productoId: string;
   productoNombre: string;
   voluntarioNombre: string;
+  voluntarioClave?: string; // clave o passkey del voluntario que realizó la entrega
+  nombre?: string; // nombre del usuario (alias) para compatibilidad de datos
+  clave?: string;  // clave del usuario
   fechaHora: string;
 }
 

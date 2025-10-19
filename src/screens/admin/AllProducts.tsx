@@ -62,10 +62,11 @@ const AllProducts: React.FC = () => {
         columnWrapperStyle={{ gap: 16 }}
         contentContainerStyle={{ gap: 16, paddingBottom: 80, paddingTop: 8 }}
         renderItem={({ item }) => (
-          <View style={styles.itemCard}>
+          <Pressable style={styles.itemCard} onPress={() => navigation.navigate('AddProduct', { productId: item.id })}>
             <Image source={{ uri: item.imagen }} style={styles.imagen} />
             <Text style={styles.nombre}>{item.nombre.toUpperCase()}</Text>
-          </View>
+            {item.categoria ? <Text style={styles.categoria}>{item.categoria}</Text> : null}
+          </Pressable>
         )}
       />
 
@@ -198,6 +199,12 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     textAlign: 'center',
     letterSpacing: 0.5,
+  },
+  categoria: {
+    fontSize: 13,
+    color: '#555',
+    marginBottom: 6,
+    textAlign: 'center',
   },
   fab: {
     position: 'absolute',
